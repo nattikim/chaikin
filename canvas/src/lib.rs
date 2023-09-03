@@ -1,5 +1,6 @@
 use chaikin::chaikin;
 use macroquad::prelude::*;
+use std::time::{Duration, Instant};
 
 pub struct AppState {
     pub control_points: Vec<(f32, f32)>,
@@ -10,6 +11,7 @@ pub struct AppState {
     animation_timer: f32,
     animation_speed: f32,
     start: bool,
+    message_start_time: Option<Instant>,
 }
 
 impl Default for AppState {
@@ -23,6 +25,7 @@ impl Default for AppState {
             animation_timer: 0.0,
             animation_speed: 1.0,
             start: false,
+            message_start_time: None,
         }
     }
 }
@@ -33,16 +36,36 @@ pub fn handle_input(state: &mut AppState) {
     }
 
     if is_key_pressed(KeyCode::Enter) {
-        state.start = true;
-        state.init_points = state.control_points.clone();
+        if state.control_points.is_empty() {
+            state.message_start_time = Some(Instant::now());
+        }
+        if state.control_points.len() > 1 {
+            state.start = true;
+            state.init_points = state.control_points.clone();
+        }
+    }
+
+    if let Some(start_time) = state.message_start_time {
+        let elapsed = start_time.elapsed();
+        if elapsed < Duration::from_secs(3) {
+            draw_message();
+        } else {
+            // After 3 seconds, clear the message and reset the start time
+            state.message_start_time = None;
+        }
     }
 }
 
 pub fn animation_step(state: &mut AppState) {
     state.animation_timer += get_frame_time();
 
+    if state.start && state.init_points.len() == 2 {
+        state.lines.push(state.init_points[0]);
+        state.lines.push(state.init_points[1]);
+    }
+
     if state.start
-        && state.init_points.len() > 1
+        && state.init_points.len() > 2
         && state.animation_step <= 7
         && state.animation_timer > state.animation_speed
     {
@@ -102,6 +125,10 @@ pub fn draw_instructions() {
         20.0,
         GRAY,
     );
+}
+
+pub fn draw_message() {
+    draw_text("You forgot to draw any points.", 250.0, 750.0, 25.0, GREEN);
 }
 
 pub fn draw_counter(animation_step: i32) {
