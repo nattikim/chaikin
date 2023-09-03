@@ -43,21 +43,25 @@ pub fn animation_step(state: &mut AppState) {
 
     if state.start
         && state.init_points.len() > 1
-        && state.animation_step < 7
+        && state.animation_step <= 7
         && state.animation_timer > state.animation_speed
     {
+        if state.animation_step == 7 {
+            state.animation_step = 0;
+            state.init_points = state.control_points.clone();
+        }
+
         state.animation_timer = 0.0;
 
-        state.points = chaikin(&state.init_points);
+        state.lines.clear();
+        for i in 0..state.init_points.len() - 1 {
+            state.lines.push(state.init_points[i]);
+            state.lines.push(state.init_points[i + 1]);
+        }
 
+        state.points = chaikin(&state.init_points);
         state.init_points = state.points.clone();
         state.animation_step += 1;
-
-        state.lines.clear();
-        for i in 0..state.points.len() - 1 {
-            state.lines.push(state.points[i]);
-            state.lines.push(state.points[i + 1]);
-        }
     }
 }
 
