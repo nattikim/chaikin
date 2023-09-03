@@ -27,6 +27,8 @@ async fn main() {
         draw_points(&state.control_points);
         draw_lines(&state.lines);
 
+        draw_message(state.message_start_time);
+
         draw_counter(state.animation_step);
 
         next_frame().await;

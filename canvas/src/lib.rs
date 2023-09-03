@@ -11,7 +11,7 @@ pub struct AppState {
     animation_timer: f32,
     animation_speed: f32,
     start: bool,
-    message_start_time: Option<Instant>,
+    pub message_start_time: Option<Instant>,
 }
 
 impl Default for AppState {
@@ -42,16 +42,6 @@ pub fn handle_input(state: &mut AppState) {
         if state.control_points.len() > 1 {
             state.start = true;
             state.init_points = state.control_points.clone();
-        }
-    }
-
-    if let Some(start_time) = state.message_start_time {
-        let elapsed = start_time.elapsed();
-        if elapsed < Duration::from_secs(3) {
-            draw_message();
-        } else {
-            // After 3 seconds, clear the message and reset the start time
-            state.message_start_time = None;
         }
     }
 }
@@ -120,15 +110,20 @@ pub fn draw_points(control_points: &[(f32, f32)]) {
 pub fn draw_instructions() {
     draw_text(
         "Place points and press Enter. Press R to restart.",
-        177.0,
+        180.0,
         30.0,
         20.0,
         GRAY,
     );
 }
 
-pub fn draw_message() {
-    draw_text("You forgot to draw any points.", 250.0, 750.0, 25.0, GREEN);
+pub fn draw_message(message_start_time: Option<Instant>) {
+    if let Some(start_time) = message_start_time {
+        let elapsed = start_time.elapsed();
+        if elapsed < Duration::from_secs(3) {
+            draw_text("You forgot to draw any points.", 250.0, 750.0, 25.0, GREEN);
+        }
+    }
 }
 
 pub fn draw_counter(animation_step: i32) {
